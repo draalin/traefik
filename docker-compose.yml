@@ -34,8 +34,8 @@ services:
   nginx:
     image: nginx:1.17
     restart: always
-    # ports:
-    #   - ":80"
+    ports:
+      - "80"
     logging:
       options:
         max-size: "10k"
@@ -44,3 +44,4 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.nginx.rule=Host(`nginx.klingon.me`)"
       - "traefik.http.routers.nginx.entrypoints=websecure"
+      - "traefik.http.routers.nginx.tls.certresolver=mytlschallenge"
