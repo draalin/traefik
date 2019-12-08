@@ -6,22 +6,32 @@ services:
     image: "traefik:v2.0.0-rc3"
     container_name: "traefik"
     command:
-      #- "--log.level=DEBUG"
-      - "--api.insecure=true"
+      - "--log.level=DEBUG"
+      - "--api"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"      
       - "--entrypoints.websecure.address=:443"
       - "--certificatesresolvers.mytlschallenge.acme.tlschallenge=true"
       - "--certificatesresolvers.mytlschallenge.acme.email=worf@klingon.me"
       - "--certificatesresolvers.mytlschallenge.acme.storage=/letsencrypt/acme.json"
-
     ports:
+      - "80:80"
       - "443:443"
-      - "8080:8080"
+      #- "8080:8080"
     volumes:
       - "./letsencrypt:/letsencrypt"
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
-
+    labels:
+      # Dashboard
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik.rule=Host(`traefik.klingon.me`)"
+      - "traefik.http.routers.traefik.service=api@internal"
+      - "traefik.http.routers.traefik.middlewares=dashboard-auth"
+      - "traefik.http.routers.traefik.tls.certresolver=mytlschallenge"
+      - "traefik.http.routers.traefik.entrypoints=websecure"
+      - "traefik.http.middlewares.dashboard-auth.basicauth.users=draalin:$$2y$$05$$yq78dWB6WJ0reVQG8w/lAOTr9i9371eO2vrHX9XjhC5tA6UFMA/0S"
+  
   whoami:
     image: "containous/whoami"
     container_name: "simple-service"
