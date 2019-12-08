@@ -6,8 +6,11 @@ services:
     image: "traefik:v2.0.0-rc3"
     container_name: "traefik"
     command:
-      - "--log.level=DEBUG"
+      - "--log.level=DEBUG" # Turn off for production
       - "--api"
+      - "--accesslog" # Enable logging
+      - "--accessLog.filePath=/opt/traefik/access.log"
+      - "--accessLog.format=json"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       - "--entrypoints.web.address=:80"      
@@ -20,6 +23,7 @@ services:
       - "443:443"
       #- "8080:8080"
     volumes:
+      - "./traefik:/opt/traefik"
       - "./letsencrypt:/letsencrypt"
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
     labels:
