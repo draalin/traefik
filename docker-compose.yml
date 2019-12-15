@@ -16,25 +16,26 @@ services:
       - "--entrypoints.web.address=:80"      
       - "--entrypoints.websecure.address=:443"
       - "--certificatesresolvers.mytlschallenge.acme.tlschallenge=true"
-      - "--certificatesresolvers.mytlschallenge.acme.email=worf@klingon.me"
+      - "--certificatesresolvers.mytlschallenge.acme.email=${EMAIL}"
       - "--certificatesresolvers.mytlschallenge.acme.storage=/letsencrypt/acme.json"
     ports:
       - "80:80"
       - "443:443"
       #- "8080:8080"
     volumes:
+      - ./.htpasswd:/auth/.htpasswd
       - "./traefik:/opt/traefik"
       - "./letsencrypt:/letsencrypt"
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
     labels:
       # Dashboard
       - "traefik.enable=true"
-      - "traefik.http.routers.traefik.rule=Host(`traefik.klingon.me`)"
+      - "traefik.http.routers.traefik.rule=Host(`traefik.${DOMAIN}`)"
       - "traefik.http.routers.traefik.service=api@internal"
       - "traefik.http.routers.traefik.middlewares=dashboard-auth"
       - "traefik.http.routers.traefik.tls.certresolver=mytlschallenge"
       - "traefik.http.routers.traefik.entrypoints=websecure"
-      - "traefik.http.middlewares.dashboard-auth.basicauth.users=draalin:$$2y$$05$$yq78dWB6WJ0reVQG8w/lAOTr9i9371eO2vrHX9XjhC5tA6UFMA/0S"
+      - "traefik.http.middlewares.dashboard-auth.basicauth.usersfile=/auth/.htpasswd"
 
       # global redirect to https
       - "traefik.http.routers.http-catchall.rule=hostregexp(`{host:.+}`)"
@@ -49,7 +50,7 @@ services:
     container_name: "simple-service"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.whoami.rule=Host(`whoami.klingon.me`)"
+      - "traefik.http.routers.whoami.rule=Host(`whoami.${DOMAIN}`)"
       - "traefik.http.routers.whoami.entrypoints=websecure"
       - "traefik.http.routers.whoami.tls.certresolver=mytlschallenge"
 
@@ -83,7 +84,7 @@ services:
       database__connection__database: ghost
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.ghost.rule=Host(`ghost.klingon.me`)"
+      - "traefik.http.routers.ghost.rule=Host(`ghost.${DOMAIN}`)"
       - "traefik.http.routers.ghost.entrypoints=websecure"
       - "traefik.http.routers.ghost.tls.certresolver=mytlschallenge"
       - "traefik.http.routers.ghost.middlewares=ghost-auth"
@@ -110,7 +111,7 @@ services:
       - wordpress:/var/www/html
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.wordpress.rule=Host(`wordpress.klingon.me`)"
+      - "traefik.http.routers.wordpress.rule=Host(`wordpress.${DOMAIN}`)"
       - "traefik.http.routers.wordpress.entrypoints=websecure"
       - "traefik.http.routers.wordpress.tls.certresolver=mytlschallenge"
       - "traefik.http.routers.wordpress.middlewares=wordpress-auth"
