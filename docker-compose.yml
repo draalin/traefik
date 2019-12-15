@@ -33,7 +33,7 @@ services:
       - "traefik.http.routers.traefik.tls.certresolver=mytlschallenge"
       - "traefik.http.routers.traefik.entrypoints=websecure"
       - "traefik.http.routers.traefik.middlewares=auth"
-      - "traefik.http.middlewares.auth.basicauth.users=${HTPASSWD}"
+      - "traefik.http.middlewares.auth.basicauth.users=draalin:$$2y$$05$$gGUVBTMDB3adDZNlavaen.6DnpM33BWvkGVceBx9cy38xwY/EXRpq"
 
       # global redirect to https
       - "traefik.http.routers.http-catchall.rule=hostregexp(`{host:.+}`)"
@@ -65,4 +65,3 @@ services:
       - "traefik.http.routers.nginx.entrypoints=websecure"
       - "traefik.http.routers.nginx.tls.certresolver=mytlschallenge"
       - "traefik.http.routers.nginx.middlewares=auth"
-      - "traefik.http.middlewares.auth.basicauth.users=${HTPASSWD}"
