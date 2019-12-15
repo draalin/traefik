@@ -23,7 +23,7 @@ services:
       - "443:443"
       #- "8080:8080"
     volumes:
-      - ./.htpasswd:/auth/.htpasswd
+      - "./.htpasswd:/auth/.htpasswd"
       - "./traefik:/opt/traefik"
       - "./letsencrypt:/letsencrypt"
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
@@ -63,11 +63,11 @@ services:
         max-file: "4"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.nginx.rule=Host(`nginx.klingon.me`)"
+      - "traefik.http.routers.nginx.rule=Host(`nginx.${DOMAIN}`)"
       - "traefik.http.routers.nginx.entrypoints=websecure"
       - "traefik.http.routers.nginx.tls.certresolver=mytlschallenge"
       - "traefik.http.routers.nginx.middlewares=nginx-auth"
-      - "traefik.http.middlewares.nginx-auth.basicauth.users=draalin:$$2y$$05$$yq78dWB6WJ0reVQG8w/lAOTr9i9371eO2vrHX9XjhC5tA6UFMA/0S"
+      - "traefik.http.middlewares.nginx-auth.basicauth.usersfile=/auth/.htpasswd"
 
 
   ghost:
@@ -87,8 +87,6 @@ services:
       - "traefik.http.routers.ghost.rule=Host(`ghost.${DOMAIN}`)"
       - "traefik.http.routers.ghost.entrypoints=websecure"
       - "traefik.http.routers.ghost.tls.certresolver=mytlschallenge"
-      - "traefik.http.routers.ghost.middlewares=ghost-auth"
-      - "traefik.http.middlewares.ghost-auth.basicauth.users=draalin:$$2y$$05$$yq78dWB6WJ0reVQG8w/lAOTr9i9371eO2vrHX9XjhC5tA6UFMA/0S"
 
   ghost-db:
     image: mysql:5.7
@@ -115,7 +113,7 @@ services:
       - "traefik.http.routers.wordpress.entrypoints=websecure"
       - "traefik.http.routers.wordpress.tls.certresolver=mytlschallenge"
       - "traefik.http.routers.wordpress.middlewares=wordpress-auth"
-      - "traefik.http.middlewares.wordpress-auth.basicauth.users=draalin:$$2y$$05$$yq78dWB6WJ0reVQG8w/lAOTr9i9371eO2vrHX9XjhC5tA6UFMA/0S"
+      - "traefik.http.middlewares.wordpress-auth.basicauth.usersfile=/auth/.htpasswd"
 
   db-wordpress:
     image: mysql:5.7
