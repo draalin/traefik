@@ -2,7 +2,7 @@ version: "3.3"
 
 services:
 
-  traefik:
+  proxy:
     image: "traefik:v2.0.0-rc3"
     container_name: "traefik"
     command:
@@ -21,9 +21,7 @@ services:
     ports:
       - "80:80"
       - "443:443"
-      #- "8080:8080"
     volumes:
-      - "./.htpasswd:/auth/.htpasswd"
       - "./traefik:/opt/traefik"
       - "./letsencrypt:/letsencrypt"
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
@@ -32,10 +30,10 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.traefik.rule=Host(`traefik.${DOMAIN}`)"
       - "traefik.http.routers.traefik.service=api@internal"
-      - "traefik.http.routers.traefik.middlewares=dashboard-auth"
       - "traefik.http.routers.traefik.tls.certresolver=mytlschallenge"
       - "traefik.http.routers.traefik.entrypoints=websecure"
-      - "traefik.http.middlewares.dashboard-auth.basicauth.usersfile=/auth/.htpasswd"
+      - "traefik.http.routers.traefik.middlewares=auth"
+      - "traefik.http.middlewares.auth.basicauth.users=${HTPASSWD}"
 
       # global redirect to https
       - "traefik.http.routers.http-catchall.rule=hostregexp(`{host:.+}`)"
@@ -47,7 +45,7 @@ services:
   
   whoami:
     image: "containous/whoami"
-    container_name: "simple-service"
+    container_name: "whoami"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.whoami.rule=Host(`whoami.${DOMAIN}`)"
@@ -66,67 +64,5 @@ services:
       - "traefik.http.routers.nginx.rule=Host(`nginx.${DOMAIN}`)"
       - "traefik.http.routers.nginx.entrypoints=websecure"
       - "traefik.http.routers.nginx.tls.certresolver=mytlschallenge"
-      - "traefik.http.routers.nginx.middlewares=nginx-auth"
-      - "traefik.http.middlewares.nginx-auth.basicauth.usersfile=/auth/.htpasswd"
-
-
-  ghost:
-    image: ghost:1-alpine
-    restart: always
-    #ports:
-    #  - 8080:2368
-    environment:
-      # see https://docs.ghost.org/docs/config#section-running-ghost-with-config-env-variables
-      database__client: mysql
-      database__connection__host: ghost-db
-      database__connection__user: root
-      database__connection__password: wherescappy
-      database__connection__database: ghost
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.ghost.rule=Host(`ghost.${DOMAIN}`)"
-      - "traefik.http.routers.ghost.entrypoints=websecure"
-      - "traefik.http.routers.ghost.tls.certresolver=mytlschallenge"
-
-  ghost-db:
-    image: mysql:5.7
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: wherescappy
-
-
-  wordpress:
-    image: wordpress
-    restart: always
-    #ports:
-    #  - 8080:80
-    environment:
-      WORDPRESS_DB_HOST: db-wordpress
-      WORDPRESS_DB_USER: draalin
-      WORDPRESS_DB_PASSWORD: wherescappy
-      WORDPRESS_DB_NAME: wordpress
-    volumes:
-      - wordpress:/var/www/html
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.wordpress.rule=Host(`wordpress.${DOMAIN}`)"
-      - "traefik.http.routers.wordpress.entrypoints=websecure"
-      - "traefik.http.routers.wordpress.tls.certresolver=mytlschallenge"
-      - "traefik.http.routers.wordpress.middlewares=wordpress-auth"
-      - "traefik.http.middlewares.wordpress-auth.basicauth.usersfile=/auth/.htpasswd"
-
-  db-wordpress:
-    image: mysql:5.7
-    restart: always
-    environment:
-      MYSQL_DATABASE: wordpress
-      MYSQL_USER: draalin
-      MYSQL_PASSWORD: wherescappy
-      MYSQL_RANDOM_ROOT_PASSWORD: '1'
-    volumes:
-      - db-wordpress:/var/lib/mysql
-
-
-volumes:
-  wordpress:
-  db-wordpress:
+      - "traefik.http.routers.nginx.middlewares=auth"
+      - "traefik.http.middlewares.auth.basicauth.users=${HTPASSWD}"
