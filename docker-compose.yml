@@ -2,7 +2,7 @@ version: "3.3"
 
 services:
 
-  proxy:
+  traefik:
     image: "traefik:v2.0.0-rc3"
     container_name: "traefik"
     command:
